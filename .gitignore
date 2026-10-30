@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Logs and test artifacts
+*.log
+.playwright-mcp/
+test-server.mjs
+
+# OS artifacts
+.DS_Store
+Thumbs.db

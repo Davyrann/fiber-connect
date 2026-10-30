@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="id" data-density="comfortable">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1E3B2F">
+  <meta name="description" content="Media Pembelajaran Interaktif Menyambung Kabel Fiber Optik (Fusion Splicing) untuk Siswa Kelas XI TJKT Fase F SMK Negeri 1 Banyudono">
+  <title>FiberConnect: Media Pembelajaran Fusion Splicing Serat Optik</title>
+  
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon.svg">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./css/style.css">
+  
+</head>
+<body x-data="appController()">
+
+  <!-- Header -->
+  <header class="app-header no-print">
+    <div class="header-brand">
+      <div class="brand-dot"></div>
+      <span class="brand-title">FiberConnect</span>
+      <span class="brand-badge">SMK Fase F</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Density Toggle -->
+      <button type="button" class="btn btn-secondary btn-sm" @click="toggleDensity()" title="Ganti Kerapatan Antarmuka" aria-label="Ganti Kerapatan Antarmuka">
+        <span class="mono" x-text="store.density === 'comfortable' ? '44px' : '32px'"></span>
+      </button>
+
+      <!-- Theme Toggle -->
+      <button type="button" class="btn btn-secondary btn-sm" @click="toggleTheme()" title="Ganti Tema Siang/Malam" aria-label="Ganti Tema Siang/Malam">
+        <span x-text="store.theme === 'night' ? 'Malam' : 'Siang'"></span>
+      </button>
+
+      <!-- User Chip -->
+      <div class="chip chip-neutral" @click="navigate('profil')" style="cursor: pointer;" title="Buka Profil Siswa">
+        <span x-text="store.user_profile.name"></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <!-- Sidebar Desktop -->
+    <aside class="app-sidebar no-print">
+      <div class="sidebar-nav">
+        <div class="nav-group-title">Menu Utama</div>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'beranda' }" @click="navigate('beranda')">
+          <span>Beranda & Progres</span>
+        </button>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'modul1' }" @click="navigate('modul1')">
+          <span>Modul 1: Transmisi & TIR</span>
+        </button>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'modul2' }" @click="navigate('modul2')">
+          <span>Modul 2: Struktur & Konektor</span>
+        </button>
+
+        <div class="nav-group-title">Praktikum Virtual</div>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'k3' }" @click="navigate('k3')">
+          <span>Gatekeeper K3</span>
+          <span class="chip" :class="store.progress.k3_completed ? 'chip-ok' : 'chip-warn'" x-text="store.progress.k3_completed ? 'Lolos' : 'Kunci'"></span>
+        </button>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'modul3', 'locked': !store.progress.k3_completed }" @click="navigate('modul3')">
+          <span>Modul 3: Fusion Splicer</span>
+          <span class="chip chip-info" x-text="store.progress.simulation.completed ? 'Selesai' : '7 Tahap'"></span>
+        </button>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'modul4' }" @click="navigate('modul4')">
+          <span>Modul 4: Virtual OTDR</span>
+        </button>
+
+        <div class="nav-group-title">Penilaian</div>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'evaluasi' }" @click="navigate('evaluasi')">
+          <span>Kuis & Diagnosis</span>
+          <span class="chip chip-neutral" x-text="store.progress.quiz.completed ? 'Dinilai' : '5 Soal'"></span>
+        </button>
+        <button type="button" class="nav-link" :class="{ 'active': store.activeTab === 'profil' }" @click="navigate('profil')">
+          <span>Profil & Rekap Capaian</span>
+        </button>
+      </div>
+
+      <div class="sidebar-footer" style="padding-top: 16px; border-top: 1px solid var(--color-line);">
+        <p class="caption">SMK Negeri 1 Banyudono</p>
+        <p class="caption">Konsentrasi Keahlian TJKT</p>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+
+      <!-- TAB 1: BERANDA -->
+      <section x-show="store.activeTab === 'beranda'">
+        <div style="margin-bottom: 24px;">
+          <h1>Media Pembelajaran Menyambung Kabel Serat Optik</h1>
+          <p class="label" style="margin-top: 4px;">Konsentrasi Keahlian TJKT, Mata Pelajaran Jaringan Komputer & Telekomunikasi (Fase F SMK)</p>
+        </div>
+
+        <!-- Student Progress KPI Cards -->
+        <div class="grid-4" style="margin-bottom: 24px;">
+          <div class="stat-card">
+            <span class="stat-label">Status Syarat K3</span>
+            <div class="kpi" :style="{ color: store.progress.k3_completed ? 'var(--color-ok-solid)' : 'var(--color-warn-solid)' }" x-text="store.progress.k3_completed ? 'Lolos' : 'Terkunci'"></div>
+            <span class="stat-context" x-text="store.progress.k3_completed ? 'Akses Modul 3 terbuka' : 'Wajib 4 poin APD & K3'"></span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Hasil Splicing Terakhir</span>
+            <div class="kpi" x-text="store.progress.simulation.completed ? store.progress.simulation.last_loss_db + ' dB' : '0.00 dB'"></div>
+            <span class="stat-context" x-text="store.progress.simulation.completed ? 'Nilai: ' + store.progress.simulation.score + '/100' : 'Belum simulasi'"></span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Skor Kuis Formatif</span>
+            <div class="kpi" x-text="store.progress.quiz.completed ? store.progress.quiz.score + '/100' : '0/100'"></div>
+            <span class="stat-context" x-text="store.progress.quiz.completed ? 'Evaluasi selesai' : '5 Pilihan Ganda'"></span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Diagnosis Kasus</span>
+            <div class="kpi" x-text="store.progress.quiz.completed ? store.progress.quiz.case_score + '/100' : '0/100'"></div>
+            <span class="stat-context" x-text="store.progress.quiz.completed ? '3 Studi kasus' : 'Analisis grafik OTDR'"></span>
+          </div>
+        </div>
+
+        <!-- Quick Access Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Alur Pelatihan Prosedural</h2>
+            <span class="chip chip-info">Kurikulum Merdeka SMK</span>
+          </div>
+          <p style="margin-bottom: 16px;">
+            Aplikasi ini dirancang sebagai media simulasi mandiri <em>zero-cost</em> untuk mengatasi keterbatasan perangkat fisik <em>fusion splicer</em> di laboratorium sekolah. Ikuti alur belajar berikut secara bertahap:
+          </p>
+          <div class="grid-3">
+            <div style="border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 14px;">
+              <h3 style="margin-bottom: 6px;">1. Penguasaan Teori</h3>
+              <p class="caption" style="margin-bottom: 12px;">Pahami struktur core-cladding, indeks bias n1 &gt; n2, prinsip TIR, dan galeri konektor SC, LC, FC, ST.</p>
+              <button type="button" class="btn btn-secondary btn-sm" @click="navigate('modul1')">Buka Modul 1 & 2</button>
+            </div>
+
+            <div style="border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 14px;">
+              <h3 style="margin-bottom: 6px;">2. Verifikasi K3</h3>
+              <p class="caption" style="margin-bottom: 12px;">Pelajari bahaya pecahan serat kaca mikroskopis dan radiasi laser sebelum membuka mesin splicer.</p>
+              <button type="button" class="btn btn-secondary btn-sm" @click="navigate('k3')">Buka Gatekeeper K3</button>
+            </div>
+
+            <div style="border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 14px;">
+              <h3 style="margin-bottom: 6px;">3. Simulasi 7 Langkah</h3>
+              <p class="caption" style="margin-bottom: 12px;">Latihan berulang pengupasan, pembersihan, cleaving 90°, peletakan V-groove, hingga arc fusion.</p>
+              <button type="button" class="btn btn-primary btn-sm" @click="navigate('modul3')">Mulai Praktik Virtual</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Problem Statement Info Callout -->
+        <div class="alert-box alert-info">
+          <div>
+            <h3 style="margin-bottom: 4px;">Informasi Penggunaan Lab</h3>
+            <p class="caption">
+              Aplikasi ini mendukung mode luring (offline) 100%. Data progres tersimpan otomatis di peramban lokal perangkat tanpa membutuhkan koneksi internet maupun basis data server.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: MODUL 1 (TRANSMISI & TIR) -->
+      <section x-show="store.activeTab === 'modul1'" x-data="theoryController()">
+        <div style="margin-bottom: 20px;">
+          <h1>Modul 1: Konsep Transmisi & Refleksi Internal Total</h1>
+          <p class="label">Mempelajari fisika perambatan cahaya dan struktur penampang kabel serat optik</p>
+        </div>
+
+        <div class="grid-2">
+          <!-- Cross Section SVG Card -->
+          <div class="card">
+            <h2 class="card-title" style="margin-bottom: 12px;">Penampang Melintang Serat Optik</h2>
+            <p class="caption" style="margin-bottom: 14px;">Klik pada salah satu lapisan lingkaran untuk melihat rincian spesifikasi teknis dan fungsinya:</p>
+
+            <div style="text-align: center; margin-bottom: 16px;">
+              <svg viewBox="0 0 280 280" style="max-width: 220px; margin: 0 auto; display: block;">
+                <!-- Outer Jacket -->
+                <circle cx="140" cy="140" r="130" fill="#E9E4D8" stroke="#7D857E" stroke-width="2" style="cursor: pointer;" @click="selectLayer('jacket')" />
+                <!-- Strength Member -->
+                <circle cx="140" cy="140" r="105" fill="#C9D4B8" stroke="#4F5B53" stroke-width="2" style="cursor: pointer;" @click="selectLayer('strength')" />
+                <!-- Coating -->
+                <circle cx="140" cy="140" r="80" fill="#9DB483" stroke="#2F6B3F" stroke-width="2" style="cursor: pointer;" @click="selectLayer('coating')" />
+                <!-- Cladding -->
+                <circle cx="140" cy="140" r="50" fill="#3F6B49" stroke="#1E3B2F" stroke-width="2" style="cursor: pointer;" @click="selectLayer('cladding')" />
+                <!-- Core -->
+                <circle cx="140" cy="140" r="20" fill="#E3A857" stroke="#A8481F" stroke-width="2" style="cursor: pointer;" @click="selectLayer('core')" />
+              </svg>
+            </div>
+
+            <!-- Layer Details Panel -->
+            <div style="background-color: var(--color-canvas); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <h3 x-text="activeLayer.name"></h3>
+                <span class="chip chip-info" x-text="activeLayer.dim"></span>
+              </div>
+              <p class="label" style="margin-bottom: 4px;">Material: <span style="color: var(--color-ink);" x-text="activeLayer.material"></span></p>
+              <p class="label" style="margin-bottom: 8px;">Indeks Bias: <span style="color: var(--color-ink);" x-text="activeLayer.index"></span></p>
+              <p class="caption" x-text="activeLayer.desc"></p>
+            </div>
+          </div>
+
+          <!-- Total Internal Reflection Demo Card -->
+          <div class="card">
+            <h2 class="card-title" style="margin-bottom: 8px;">Simulasi Refleksi Internal Total (TIR)</h2>
+            <p class="caption" style="margin-bottom: 12px;">Geser sudut datang cahaya (θ) terhadap garis normal untuk mengamati hukum pembiasan Snellius dan sudut kritis.</p>
+
+            <canvas id="tirCanvas" width="460" height="220" style="width: 100%; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: #1B2520; display: block; margin-bottom: 14px;"></canvas>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <label class="label">Sudut Datang Cahaya (θ): <span class="mono" style="font-weight: 600;" x-text="tirAngle + '°'"></span></label>
+                <span class="label">Sudut Kritis Core-Cladding (θc): <span class="mono" style="font-weight: 600;">81.8°</span></span>
+              </div>
+              <input type="range" class="otdr-range" min="70" max="89" step="1" x-model="tirAngle" @input="onAngleChange($event)" style="width: 100%;">
+            </div>
+
+            <div class="alert-box" :class="tirAngle >= 81.8 ? 'alert-ok' : 'alert-bad'" style="margin-bottom: 0;">
+              <div>
+                <p class="label" style="font-weight: 600;" x-text="tirAngle >= 81.8 ? 'Kondisi TIR Terpenuhi (Cahaya Terpandu)' : 'Cahaya Bocor ke Cladding (Atenuasi Ekstrim)'"></p>
+                <p class="caption" x-text="tirAngle >= 81.8 ? 'Sudut datang melampaui sudut kritis 81.8° sehingga 100% foton dipantulkan sempurna di dalam inti serat.' : 'Sudut datang berada di bawah sudut kritis, sebagian berkas cahaya menembus keluar selubung kaca dan sinyal hilang.'"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Singlemode vs Multimode Matrix Card -->
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 12px;">Matriks Komparasi Singlemode vs Multimode</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Parameter Teknis</th>
+                  <th>Singlemode (SM - G.652D)</th>
+                  <th>Multimode (MM - OM3/OM4)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Diameter Inti (Core)</strong></td>
+                  <td class="td-mono">9 µm (Sangat sempit)</td>
+                  <td class="td-mono">50 µm / 62.5 µm (Lebar)</td>
+                </tr>
+                <tr>
+                  <td><strong>Diameter Cladding</strong></td>
+                  <td class="td-mono">125 µm (Standar industri)</td>
+                  <td class="td-mono">125 µm (Standar industri)</td>
+                </tr>
+                <tr>
+                  <td><strong>Sumber Cahaya</strong></td>
+                  <td>Laser Diode (1310 nm & 1550 nm)</td>
+                  <td>LED / VCSEL (850 nm & 1300 nm)</td>
+                </tr>
+                <tr>
+                  <td><strong>Dispersi Modal</strong></td>
+                  <td>Nol (Hanya 1 mode gelombang merambat)</td>
+                  <td>Tinggi (Banyak pantulan berkas mode cahaya)</td>
+                </tr>
+                <tr>
+                  <td><strong>Jarak Jangkauan Khas</strong></td>
+                  <td>Jarak jauh (Hingga puluhan/ratusan km)</td>
+                  <td>Jarak pendek (&le; 500 meter, LAN / Data Center)</td>
+                </tr>
+                <tr>
+                  <td><strong>Aplikasi SMK / Lapangan</strong></td>
+                  <td>Kabel Backbone, Distribusi FTTH Telkom, Drop Cable</td>
+                  <td>Koneksi antar server dalam satu gedung/rak</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: MODUL 2 (KONEKTOR & POLISH) -->
+      <section x-show="store.activeTab === 'modul2'" x-data="theoryController()">
+        <div style="margin-bottom: 20px;">
+          <h1>Modul 2: Galeri Konektor & Tipe Pemolesan (Polish)</h1>
+          <p class="label">Mengenal tipe penguncian mekanik konektor dan pengaruh sudut pemolesan ferrule</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 12px;">Tipe Konektor Standar Telekomunikasi</h2>
+          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <button type="button" class="btn" :class="activeConnKey === 'SC' ? 'btn-primary' : 'btn-secondary'" @click="selectConnector('SC')">Konektor SC</button>
+            <button type="button" class="btn" :class="activeConnKey === 'LC' ? 'btn-primary' : 'btn-secondary'" @click="selectConnector('LC')">Konektor LC</button>
+            <button type="button" class="btn" :class="activeConnKey === 'FC' ? 'btn-primary' : 'btn-secondary'" @click="selectConnector('FC')">Konektor FC</button>
+            <button type="button" class="btn" :class="activeConnKey === 'ST' ? 'btn-primary' : 'btn-secondary'" @click="selectConnector('ST')">Konektor ST</button>
+          </div>
+
+          <div style="background-color: var(--color-canvas); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h3 x-text="activeConn.fullName"></h3>
+              <span class="chip chip-info" x-text="activeConn.locking"></span>
+            </div>
+            <p class="label" style="margin-bottom: 4px;">Bentuk Fisik & Ferrule: <span style="color: var(--color-ink);" x-text="activeConn.shape"></span></p>
+            <p class="label" style="margin-bottom: 8px;">Penggunaan Umum: <span style="color: var(--color-ink);" x-text="activeConn.typicalUse"></span></p>
+            <p class="caption" style="line-height: 1.5;" x-text="activeConn.advantages"></p>
+          </div>
+        </div>
+
+        <!-- Polish Types Card -->
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 12px;">Tipe Pemolesan Ujung Ferrule: UPC (Biru) vs APC (Hijau)</h2>
+          <div class="grid-2">
+            <div style="border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 16px; background-color: var(--color-canvas);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3>UPC (Ultra Physical Contact)</h3>
+                <span class="chip" style="background-color: #DCEBEA; color: #0F3D5C; font-weight: 600;">Warna Bodi: Biru</span>
+              </div>
+              <p class="label" style="margin-bottom: 6px;">Bentuk Ujung: Pemolesan kubah sedikit melengkung (sudut 0° datar rata).</p>
+              <p class="label" style="margin-bottom: 6px;">Return Loss: &ge; 50 dB.</p>
+              <p class="caption">Cocok untuk transmisi data digital umum Ethernet, patchcord lab sekolah, dan converter media optik standar.</p>
+            </div>
+
+            <div style="border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 16px; background-color: var(--color-canvas);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3>APC (Angled Physical Contact)</h3>
+                <span class="chip" style="background-color: #E3EEDD; color: #1F4D2C; font-weight: 600;">Warna Bodi: Hijau</span>
+              </div>
+              <p class="label" style="margin-bottom: 6px;">Bentuk Ujung: Miring presisi dengan sudut 8° derajat.</p>
+              <p class="label" style="margin-bottom: 6px;">Return Loss: &ge; 60 dB (Pantulan balik sangat minim).</p>
+              <p class="caption">Wajib digunakan pada transmisi CATV analog (TV kabel), sinyal video RF, dan jaringan FTTH GPON Telkom IndiHome untuk mencegah pantulan merusak laser OLT.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: K3 GATEKEEPER -->
+      <section x-show="store.activeTab === 'k3'" x-data="k3GateController()">
+        <div style="margin-bottom: 20px;">
+          <h1>Gatekeeper Keselamatan & Kesehatan Kerja (K3)</h1>
+          <p class="label">Prasyarat wajib sebelum mengakses mesin simulasi fusion splicing serat optik</p>
+        </div>
+
+        <div class="alert-box alert-warn" style="margin-bottom: 20px;">
+          <div>
+            <h3 style="margin-bottom: 4px;">Peringatan Standar Keselamatan Kerja Laboratorium</h3>
+            <p class="caption">
+              Serat optik terbuat dari kaca silika murni dengan ketebalan mikron. Pelanggaran prosedur kerja dapat mengakibatkan kebutaan akibat paparan laser tak kasat mata atau serpihan kaca menusuk organ tubuh.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 16px;">Verifikasi 4 Poin Syarat K3</h2>
+
+          <div class="checkbox-label" style="border-bottom: 1px solid var(--color-line);">
+            <input type="checkbox" id="k3_apd" :checked="items.apd" @change="toggleCheck('apd', $event)">
+            <div>
+              <label for="k3_apd" style="font-weight: 600; cursor: pointer;">1. Penggunaan APD (Kacamata Pelindung & Sarung Tangan Antistatis)</label>
+              <p class="caption">Wajib mengenakan safety goggles untuk mencegah serpihan kaca memantul ke mata saat pemotongan, serta sarung tangan agar minyak tangan tidak mengotori serat.</p>
+            </div>
+          </div>
+
+          <div class="checkbox-label" style="border-bottom: 1px solid var(--color-line);">
+            <input type="checkbox" id="k3_laser" :checked="items.laser" @change="toggleCheck('laser', $event)">
+            <div>
+              <label for="k3_laser" style="font-weight: 600; cursor: pointer;">2. Larangan Menatap Ujung Serat Aktif Secara Langsung</label>
+              <p class="caption">Sinar laser inframerah (1310/1490/1550 nm) tidak terlihat oleh mata telanjang namun langsung membakar retina tanpa memicu refleks berkedip.</p>
+            </div>
+          </div>
+
+          <div class="checkbox-label" style="border-bottom: 1px solid var(--color-line);">
+            <input type="checkbox" id="k3_bin" :checked="items.bin" @change="toggleCheck('bin', $event)">
+            <div>
+              <label for="k3_bin" style="font-weight: 600; cursor: pointer;">3. Prosedur Wadah Pembuangan Khusus Serat Kaca (Fiber Disposal Bin)</label>
+              <p class="caption">Setiap sisa patahan potongan cleaver wajib langsung dimasukkan ke wadah tertutup rapat berlabel khusus, dilarang dibuang ke lantai atau tempat sampah terbuka.</p>
+            </div>
+          </div>
+
+          <div class="checkbox-label">
+            <input type="checkbox" id="k3_clean" :checked="items.clean" @change="toggleCheck('clean', $event)">
+            <div>
+              <label for="k3_clean" style="font-weight: 600; cursor: pointer;">4. Pemeriksaan Kebersihan Elektroda & V-Groove Mesin Splicer</label>
+              <p class="caption">Memastikan bilik elektroda bebas dari debu, abu pembakaran, atau minyak sebelum kabel diletakkan pada rel penyelarasan otomatis.</p>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span class="chip" :class="isUnlocked ? 'chip-ok' : 'chip-bad'" x-text="isUnlocked ? 'Status: 4/4 Syarat Lengkap' : 'Status: Belum Lengkap'"></span>
+            </div>
+            <button type="button" class="btn btn-primary" :disabled="!isUnlocked" @click="proceedToSimulation()">
+              Buka Modul 3: Simulasi Splicing
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: MODUL 3 (SIMULASI FUSION SPLICING 7 LANGKAH) -->
+      <section x-show="store.activeTab === 'modul3'" x-data="simulationController()">
+        <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h1>Modul 3: Simulasi Prosedural Fusion Splicer</h1>
+            <p class="label">Praktik penyambungan 7 langkah dengan mesin fusi busur listrik otomatis</p>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" @click="resetSim()">Ulangi Dari Awal</button>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator-bar">
+          <div class="step-pill" :class="{ 'completed': sim.currentStep > 1, 'current': sim.currentStep === 1 }"></div>
+          <div class="step-pill" :class="{ 'completed': sim.currentStep > 2, 'current': sim.currentStep === 2 }"></div>
+          <div class="step-pill" :class="{ 'completed': sim.currentStep > 3, 'current': sim.currentStep === 3 }"></div>
+          <div class="step-pill" :class="{ 'completed': sim.currentStep > 4, 'current': sim.currentStep === 4 }"></div>
+          <div class="step-pill" :class="{ 'completed': sim.currentStep > 5, 'current': sim.currentStep === 5 }"></div>
+          <div class="step-pill" :class="{ 'completed': sim.currentStep > 6, 'current': sim.currentStep === 6 }"></div>
+          <div class="step-pill" :class="{ 'completed': sim.currentStep > 7, 'current': sim.currentStep === 7 }"></div>
+        </div>
+
+        <!-- Splicer LCD Hardware View -->
+        <div class="splicer-machine">
+          <div class="splicer-screen">
+            <div class="splicer-screen-header">
+              <span>PROG: <span x-text="sim.programMode"></span></span>
+              <span>STEP: <span x-text="sim.currentStep + '/7'"></span></span>
+              <span>LOSS EST: <span x-text="sim.lossDb.toFixed(2) + ' dB'"></span></span>
+              <span>SKOR: <span x-text="sim.score + '/100'"></span></span>
+            </div>
+
+            <div class="splicer-canvas-container">
+              <div class="splicer-view-box">
+                <span class="splicer-view-title">KAMERA OPTIK SUMBU-X (ATAS)</span>
+                <canvas id="splicerCanvasX" width="300" height="150" style="width: 100%; height: 130px; display: block; border-radius: var(--radius-sm);"></canvas>
+                <div class="arc-flash" :class="{ 'active': sim.isArcing }"></div>
+              </div>
+
+              <div class="splicer-view-box">
+                <span class="splicer-view-title">KAMERA OPTIK SUMBU-Y (SAMPING)</span>
+                <canvas id="splicerCanvasY" width="300" height="150" style="width: 100%; height: 130px; display: block; border-radius: var(--radius-sm);"></canvas>
+                <div class="arc-flash" :class="{ 'active': sim.isArcing }"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Control Panel for Active Step -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-info" x-text="'Langkah ' + sim.currentStep + ' dari 7'"></span>
+              <h2 class="card-title" style="margin-top: 6px;" x-text="sim.stepsMeta[sim.currentStep - 1].title"></h2>
+            </div>
+          </div>
+          <p class="caption" style="margin-bottom: 20px;" x-text="sim.stepsMeta[sim.currentStep - 1].desc"></p>
+
+          <!-- Step 1 Controls -->
+          <div x-show="sim.currentStep === 1">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" x-model="step1Glasses">
+                <span>Kenakan kacamata pelindung bening (Safety Goggles)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" x-model="step1Gloves">
+                <span>Kenakan sarung tangan antistatis (Lint-free ESD Gloves)</span>
+              </label>
+            </div>
+            <button type="button" class="btn btn-primary" @click="submitStep1()">Konfirmasi APD & Ambil Kabel</button>
+            <p class="caption" style="margin-top: 8px; color: var(--color-warn-solid);" x-show="!step1Glasses || !step1Gloves">
+              * Wajib mencentang kedua APD di atas sebelum mengambil kabel fiber optik.
+            </p>
+          </div>
+
+          <!-- Step 2 Controls -->
+          <div x-show="sim.currentStep === 2">
+            <div class="grid-2" style="margin-bottom: 16px;">
+              <div class="form-group">
+                <label class="label">Pilih Lubang Pisau Fiber Stripper:</label>
+                <select class="select" x-model="step2Hole">
+                  <option value="coating_250">Lubang 3: Kupas Acrylate Coating 250 µm ke Kaca 125 µm (Benar)</option>
+                  <option value="tight_900">Lubang 2: Kupas Tight Buffer 900 µm</option>
+                  <option value="jacket_hole">Lubang 1: Kupas Jaket Luar 2-3 mm (Salah untuk coating)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="label">Panjang Kupasan Kaca Silika: <span class="mono" style="font-weight: 600;" x-text="step2Length + ' cm'"></span></label>
+                <input type="range" class="otdr-range" min="1.0" max="6.0" step="0.5" x-model="step2Length" style="margin-top: 8px;">
+                <span class="caption">Standar rekomendasi: 3.0 s.d. 4.0 cm</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" @click="submitStep2()">Lakukan Pengupasan (Strip)</button>
+          </div>
+
+          <!-- Step 3 Controls -->
+          <div x-show="sim.currentStep === 3">
+            <div class="grid-2" style="margin-bottom: 16px;">
+              <div class="form-group">
+                <label class="label">Cairan Pelarut Pembersih:</label>
+                <select class="select" x-model="step3Solvent">
+                  <option value="alcohol_90">Alkohol Isopropil 90%+ Murni (Benar)</option>
+                  <option value="water">Air Mineral Biasa (Salah: tinggalkan mineral)</option>
+                  <option value="dry">Tanpa Cairan / Tisu Kering (Salah: debu menggores)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="label">Teknik Usapan Tisu Bebas Serat (Lint-free):</label>
+                <select class="select" x-model="step3Wipe">
+                  <option value="single_direction">Satu Arah (Pangkal ke Ujung Serat) (Benar)</option>
+                  <option value="back_forth">Bolak-balik (Salah: mendistribusikan kotoran)</option>
+                </select>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" @click="submitStep3()">Seka & Bersihkan Serat</button>
+          </div>
+
+          <!-- Step 4 Controls -->
+          <div x-show="sim.currentStep === 4">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" x-model="step4Straight">
+                <span>Posisikan serat tegak lurus pada alur mistar cleaver presisi</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" x-model="step4Clamp">
+                <span>Tutup penutup penjepit klem cleaver rapat sebelum menggeser pisau potong</span>
+              </label>
+            </div>
+            <button type="button" class="btn btn-primary" @click="submitStep4()">Potong Serat (Cleave 90°)</button>
+          </div>
+
+          <!-- Step 5 Controls -->
+          <div x-show="sim.currentStep === 5">
+            <div class="form-group">
+              <label class="label">Penempatan Ujung Serat pada V-Groove Mesin Splicer:</label>
+              <select class="select" x-model="step5Pos">
+                <option value="ideal_gap">Di antara elektroda dengan celah 10-15 µm (Benar)</option>
+                <option value="touch_electrode">Menempel / menyentuh batang elektroda (Salah: elektroda rusak)</option>
+                <option value="too_far">Terlalu mundur jauh di luar jangkauan kamera fokus (Salah)</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary" @click="submitStep5()">Kunci Klem V-Groove & Tutup Wind Protector</button>
+          </div>
+
+          <!-- Step 6 Controls -->
+          <div x-show="sim.currentStep === 6">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="label">Pilih Program Arc Splicer:</label>
+              <select class="select" x-model="step6Profile">
+                <option value="SM_AUTO">SM AUTO (Standar Singlemode G.652 - 1310/1550nm) (Benar)</option>
+                <option value="MM_AUTO">MM AUTO (Multimode 50/125µm - Panas Terlalu Tinggi)</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary" :disabled="sim.isArcing" @click="submitStep6()">
+              <span x-text="sim.isArcing ? 'Pelepasan Busur Listrik Berlangsung...' : 'Tekan Tombol Set (Picu Arc Fusion)'"></span>
+            </button>
+          </div>
+
+          <!-- Step 7 Controls -->
+          <div x-show="sim.currentStep === 7">
+            <div class="grid-2" style="margin-bottom: 16px;">
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" x-model="step7Sleeve">
+                  <span>Geser protection sleeve tepat menutupi titik lebur sambungan</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="label">Durasi Pemanasan Oven Heater: <span class="mono" style="font-weight: 600;" x-text="step7Time + ' detik'"></span></label>
+                <input type="range" class="otdr-range" min="5" max="45" step="5" x-model="step7Time" style="margin-top: 8px;">
+                <span class="caption">Standar heater oven: 20 s.d. 30 detik</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" @click="submitStep7()">Panaskan Protection Sleeve & Selesaikan Praktik</button>
+          </div>
+        </div>
+
+        <!-- Warning Feedback Modal on Error -->
+        <div class="modal-backdrop" x-show="sim.activeWarning" style="display: none;">
+          <div class="modal-box">
+            <div class="modal-header">
+              <h3 style="color: var(--color-bad-solid);">Kesalahan Prosedur Terdeteksi!</h3>
+              <span class="chip chip-bad" x-text="'-' + sim.activeWarning?.points + ' Poin'"></span>
+            </div>
+            <p style="margin-bottom: 12px; line-height: 1.5;" x-text="sim.activeWarning?.message"></p>
+            <div class="alert-box alert-bad" style="margin-bottom: 16px;">
+              <p class="caption">Dampak Teknis: Estimasi redaman bertambah +<span class="mono" style="font-weight: 600;" x-text="sim.activeWarning?.loss.toFixed(2)"></span> dB.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="closeWarning()">Perbaiki Prosedur</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: MODUL 4 (VIRTUAL OTDR & OPM) -->
+      <section x-show="store.activeTab === 'modul4'" x-data="otdrController()">
+        <div style="margin-bottom: 20px;">
+          <h1>Modul 4: Pengujian Virtual OTDR & OPM</h1>
+          <p class="label">Analisis grafik pantulan balik Rayleigh dan pembacaan redaman sambungan mandiri</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Kurva Jejak OTDR (Optical Time Domain Reflectometer)</h2>
+              <span class="caption">Panjang Gelombang: 1310 nm | Jangkauan: 0.0 - 5.0 km</span>
+            </div>
+            <span class="chip chip-info" x-text="'Redaman Sambungan di km 2.2: ' + (store.progress.simulation.completed ? store.progress.simulation.last_loss_db + ' dB' : '0.08 dB')"></span>
+          </div>
+
+          <div class="otdr-canvas-shell">
+            <canvas id="otdrCanvas" width="800" height="280" class="otdr-canvas"></canvas>
+          </div>
+
+          <div class="otdr-slider-row">
+            <label class="label" style="min-width: 130px;">Geser Kursor Jarak:</label>
+            <input type="range" id="otdrRangeSlider" class="otdr-range" min="0" max="5.0" step="0.05" x-model="cursorKm">
+            <div class="otdr-readout">
+              <span id="otdrKmDisplay">2.20 km</span>
+              <span id="otdrDbDisplay" style="color: var(--color-primary); font-weight: 600;">-8.85 dB</span>
+            </div>
+          </div>
+          <p class="caption" style="margin-top: 8px;">Keterangan Zona: <strong id="otdrNoteDisplay" style="color: var(--color-ink);">Zona Titik Sambungan</strong></p>
+        </div>
+
+        <!-- Event Interpretation Guide -->
+        <div class="grid-3">
+          <div class="card">
+            <h3 style="margin-bottom: 6px;">Event 1: Pantulan Fresnel</h3>
+            <p class="caption">Spike tajam ke atas yang terjadi pada konektor ujung akibat perubahan indeks bias kaca ke udara (udara n=1.0003 vs kaca n=1.450).</p>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom: 6px;">Event 2: Splice Step Loss</h3>
+            <p class="caption">Tangga penurunan daya vertikal tanpa refleksi tajam. Menggambarkan insertion loss pada titik lebur kabel hasil Modul 3.</p>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom: 6px;">Event 3: Ujung Serat (Fiber End)</h3>
+            <p class="caption">Spike Fresnel terakhir sebelum kurva jatuh curam ke batas lantai derau (noise floor) alat ukur.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: EVALUASI & KUIS -->
+      <section x-show="store.activeTab === 'evaluasi'" x-data="quizController()">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h1>Evaluasi Formatif & Diagnosis Kasus</h1>
+            <p class="label">Uji pemahaman komprehensif teori transmisi optik, K3, dan troubleshooting sambungan</p>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm no-print" x-show="isSubmitted" @click="printReport()">Cetak Laporan PDF</button>
+        </div>
+
+        <!-- 5 Formative Questions -->
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 16px;">Bagian A: Kuis Pilihan Ganda (5 Soal)</h2>
+
+          <template x-for="(q, idx) in questions" :key="q.id">
+            <div style="padding: 14px 0; border-bottom: 1px solid var(--color-line);">
+              <p style="font-weight: 600; margin-bottom: 10px;" x-text="(idx + 1) + '. ' + q.question"></p>
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+                <template x-for="opt in q.options" :key="opt.id">
+                  <label class="checkbox-label" style="padding: 4px 8px; border-radius: var(--radius-sm);" :style="{ backgroundColor: userAnswers[q.id] === opt.id ? 'var(--color-sand)' : 'transparent' }">
+                    <input type="radio" :name="'q_' + q.id" :value="opt.id" :checked="userAnswers[q.id] === opt.id" @change="selectAnswer(q.id, opt.id)">
+                    <span x-text="opt.text"></span>
+                  </label>
+                </template>
+              </div>
+
+              <!-- Explanation after submit -->
+              <div x-show="isSubmitted" style="margin-top: 8px; padding: 10px; background-color: var(--color-canvas); border-left: 3px solid var(--color-primary); border-radius: var(--radius-sm);">
+                <p class="caption" style="font-weight: 600; color: var(--color-primary);">Pembahasan Teknis:</p>
+                <p class="caption" x-text="q.explanation"></p>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- 3 Graphical Case Diagnosis Questions -->
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 16px;">Bagian B: Diagnosis Studi Kasus Lapangan (3 Kasus)</h2>
+
+          <template x-for="(c, cIdx) in caseStudies" :key="c.id">
+            <div style="padding: 14px 0; border-bottom: 1px solid var(--color-line);">
+              <h3 style="margin-bottom: 6px;" x-text="c.title"></h3>
+              <p class="caption" style="margin-bottom: 10px; line-height: 1.5; color: var(--color-ink);" x-text="c.scenario"></p>
+              <p style="font-weight: 600; margin-bottom: 8px;" x-text="c.question"></p>
+
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+                <template x-for="opt in c.options" :key="opt.id">
+                  <label class="checkbox-label" style="padding: 4px 8px; border-radius: var(--radius-sm);" :style="{ backgroundColor: userCaseAnswers[c.id] === opt.id ? 'var(--color-sand)' : 'transparent' }">
+                    <input type="radio" :name="'case_' + c.id" :value="opt.id" :checked="userCaseAnswers[c.id] === opt.id" @change="selectCaseAnswer(c.id, opt.id)">
+                    <span x-text="opt.text"></span>
+                  </label>
+                </template>
+              </div>
+
+              <!-- Explanation after submit -->
+              <div x-show="isSubmitted" style="margin-top: 8px; padding: 10px; background-color: var(--color-canvas); border-left: 3px solid var(--color-primary); border-radius: var(--radius-sm);">
+                <p class="caption" style="font-weight: 600; color: var(--color-primary);">Solusi & Tindakan Lapangan:</p>
+                <p class="caption" x-text="c.explanation"></p>
+              </div>
+            </div>
+          </template>
+
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end;" class="no-print">
+            <button type="button" class="btn btn-primary" @click="submitAll()">Kirim Jawaban & Hitung Nilai</button>
+          </div>
+        </div>
+
+        <!-- Evaluation Results Summary Card -->
+        <div class="card" x-show="isSubmitted" style="background-color: var(--color-surface); border: 2px solid var(--color-line-strong);">
+          <div class="card-header">
+            <h2 class="card-title">Kartu Rekapitulasi Capaian Siswa</h2>
+            <span class="chip chip-ok">Laporan Terverifikasi</span>
+          </div>
+
+          <div class="grid-2" style="margin-bottom: 16px;">
+            <div>
+              <p class="label">Nama Siswa: <strong style="color: var(--color-ink);" x-text="store.user_profile.name"></strong></p>
+              <p class="label">Kelas: <strong style="color: var(--color-ink);" x-text="store.user_profile.class"></strong></p>
+              <p class="label">Sekolah: <strong style="color: var(--color-ink);">SMK Negeri 1 Banyudono</strong></p>
+            </div>
+            <div>
+              <p class="label">Nilai Kuis Formatif: <strong class="mono" style="color: var(--color-primary); font-size: 1.125rem;" x-text="store.progress.quiz.score + ' / 100'"></strong></p>
+              <p class="label">Nilai Diagnosis Kasus: <strong class="mono" style="color: var(--color-primary); font-size: 1.125rem;" x-text="store.progress.quiz.case_score + ' / 100'"></strong></p>
+              <p class="label">Redaman Splicing Akhir: <strong class="mono" style="color: var(--color-accent); font-size: 1.125rem;" x-text="store.progress.simulation.last_loss_db + ' dB'"></strong></p>
+            </div>
+          </div>
+
+          <p class="caption">Waktu Penyelesaian: <span class="mono" x-text="store.progress.quiz.completed_at || '-'"></span></p>
+        </div>
+      </section>
+
+      <!-- TAB 8: PROFIL & LISENSI -->
+      <section x-show="store.activeTab === 'profil'" x-data="profileController()">
+        <div style="margin-bottom: 20px;">
+          <h1>Profil Siswa & Informasi Media</h1>
+          <p class="label">Pengaturan identitas peserta didik dan informasi lisensi pengembang</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 16px;">Identitas Peserta Didik</h2>
+          <div class="grid-2" style="margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="label">Nama Lengkap Siswa:</label>
+              <input type="text" class="input" x-model="name">
+            </div>
+            <div class="form-group">
+              <label class="label">Kelas / Rombel:</label>
+              <input type="text" class="input" x-model="studentClass">
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" @click="saveProfile()">Simpan Perubahan Profil</button>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 12px;">Reset Riwayat Pembelajaran</h2>
+          <p class="caption" style="margin-bottom: 16px;">Gunakan tombol ini jika Anda ingin mengulang seluruh latihan dari modul awal (menghapus progres K3, skor simulasi, dan kuis dari memori lokal peramban).</p>
+          <button type="button" class="btn btn-danger" @click="resetData()">Reset Seluruh Progres Latihan</button>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title" style="margin-bottom: 12px;">Tentang Pengembang & Media Pembelajaran</h2>
+          <div style="line-height: 1.6;">
+            <p class="label">Judul Media: <strong style="color: var(--color-ink);">FiberConnect: Media Pembelajaran Interaktif Berbasis Web: Menyambung Kabel Fiber Optik (Fase F SMK)</strong></p>
+            <p class="label">Pengembang: <strong style="color: var(--color-ink);">Muhammad Dava Syahputra</strong></p>
+            <p class="label">NIM: <strong class="mono" style="color: var(--color-ink);">K3524058</strong></p>
+            <p class="label">Mitra Sekolah: <strong style="color: var(--color-ink);">SMK Negeri 1 Banyudono</strong></p>
+            <p class="label">Arsitektur: <strong style="color: var(--color-ink);">Vanilla HTML5 / Modern CSS / Vanilla JS + Alpine.js (PWA Client-Side SPA, Zero-Cost Hosting)</strong></p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="bottom-nav no-print" aria-label="Navigasi Bawah Mobile">
+    <button type="button" class="bottom-nav-item" :class="{ 'active': store.activeTab === 'beranda' }" @click="navigate('beranda')">
+      <span>Beranda</span>
+    </button>
+    <button type="button" class="bottom-nav-item" :class="{ 'active': store.activeTab === 'modul1' }" @click="navigate('modul1')">
+      <span>Materi</span>
+    </button>
+    <button type="button" class="bottom-nav-item" :class="{ 'active': store.activeTab === 'k3' }" @click="navigate('k3')">
+      <span>K3</span>
+    </button>
+    <button type="button" class="bottom-nav-item" :class="{ 'active': store.activeTab === 'modul3' }" @click="navigate('modul3')">
+      <span>Splicing</span>
+    </button>
+    <button type="button" class="bottom-nav-item" :class="{ 'active': store.activeTab === 'evaluasi' }" @click="navigate('evaluasi')">
+      <span>Kuis</span>
+    </button>
+  </nav>
+
+  <!-- Toast Container -->
+  <div class="toast-container no-print" aria-live="polite">
+    <template x-for="t in toasts" :key="t.id">
+      <div class="toast" :class="'toast-' + (t.type || 'info')" @click="dismissToast(t.id)" style="cursor: pointer;" title="Klik untuk menutup notifikasi">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <span x-text="t.message"></span>
+          <button type="button" class="btn-ghost btn-sm" style="height: 20px; width: 20px; padding: 0; min-width: 20px; border-radius: var(--radius-full); line-height: 1; font-size: 14px;" @click.stop="dismissToast(t.id)" aria-label="Tutup notifikasi">×</button>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Scripts at end of body -->
+  <script src="./js/store.js"></script>
+  <script src="./js/modules/fiber-theory.js"></script>
+  <script src="./js/modules/simulation.js"></script>
+  <script src="./js/modules/otdr.js"></script>
+  <script src="./js/modules/quiz.js"></script>
+  <script src="./js/app.js"></script>
+  <script src="./js/vendor/alpine.min.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="100" fill="#1E3B2F"/>
+  <!-- Cladding outer -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#A8C79A" stroke-width="12" stroke-dasharray="8 6"/>
+  <!-- Cladding fill -->
+  <circle cx="256" cy="256" r="160" fill="#2A5240"/>
+  <!-- Core -->
+  <circle cx="256" cy="256" r="64" fill="#E3A857" stroke="#A8481F" stroke-width="8"/>
+  <!-- Optical Light Rays -->
+  <path d="M 80 256 L 210 256 L 256 220 L 302 256 L 432 256" fill="none" stroke="#22D3EE" stroke-width="10" stroke-linecap="round"/>
+  <!-- Arc Spark Center -->
+  <circle cx="256" cy="256" r="16" fill="#FFFFFF"/>
+</svg>
