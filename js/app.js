@@ -1,11 +1,19 @@
 // Global controllers for Alpine.js
 window.appController = function() {
   return {
+    inputPlayerName: window.FiberStore.state.user_profile.name || '',
+    inputPlayerClass: window.FiberStore.state.user_profile.class || 'XI TJKT',
     get store() {
       return window.FiberStore.state;
     },
     get toasts() {
       return window.FiberStore.toasts;
+    },
+    get showNameModal() {
+      return window.FiberStore.showNameModal;
+    },
+    submitPlayerName() {
+      window.FiberStore.setPlayerName(this.inputPlayerName, this.inputPlayerClass);
     },
     navigate(tab) {
       window.FiberStore.navigate(tab);
@@ -204,6 +212,7 @@ function registerAlpineData() {
   window.FiberStore.init();
 
   if (typeof window.Alpine.reactive === 'function') {
+    window.FiberStore = window.Alpine.reactive(window.FiberStore);
     window.FiberSimulation = window.Alpine.reactive(window.FiberSimulation);
     window.FiberTheory = window.Alpine.reactive(window.FiberTheory);
     window.FiberQuiz = window.Alpine.reactive(window.FiberQuiz);

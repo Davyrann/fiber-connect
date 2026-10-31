@@ -5,8 +5,9 @@ const DEFAULT_STATE = {
   density: 'comfortable',
   activeTab: 'beranda',
   user_profile: {
-    name: 'Siswa TJKT',
-    class: 'XI TJKT'
+    name: '',
+    class: 'XI TJKT',
+    registered: false
   },
   progress: {
     k3_completed: false,
@@ -42,10 +43,16 @@ function loadStoredState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw);
+    const hasName = !!(parsed.user_profile?.name && parsed.user_profile.name.trim() !== '' && parsed.user_profile.name !== 'Siswa TJKT');
+    const isRegistered = parsed.user_profile?.registered !== undefined ? !!parsed.user_profile.registered : hasName;
     return {
       ...DEFAULT_STATE,
       ...parsed,
-      user_profile: { ...DEFAULT_STATE.user_profile, ...(parsed.user_profile || {}) },
+      user_profile: {
+        ...DEFAULT_STATE.user_profile,
+        ...(parsed.user_profile || {}),
+        registered: isRegistered && hasName
+      },
       progress: {
         ...DEFAULT_STATE.progress,
         ...(parsed.progress || {}),
@@ -71,6 +78,7 @@ function saveStoredState(state) {
 window.FiberStore = {
   state: loadStoredState(),
   toasts: [],
+  showNameModal: false,
   _initialized: false,
 
   init() {
@@ -82,6 +90,9 @@ window.FiberStore = {
     if (!this._initialized) {
       this.applyTheme();
       this.applyDensity();
+      if (!this.state.user_profile.registered || !this.state.user_profile.name) {
+        this.showNameModal = true;
+      }
       window.addEventListener('hashchange', () => {
         const hash = window.location.hash.replace('#', '') || 'beranda';
         this.navigate(hash);
@@ -134,11 +145,31 @@ window.FiberStore = {
     document.documentElement.setAttribute('data-density', this.state.density);
   },
 
+  setPlayerName(name, studentClass) {
+    const trimmed = (name || '').trim();
+    if (!trimmed) {
+      this.showToast('Silakan masukkan nama Anda terlebih dahulu.', 'warn');
+      return false;
+    }
+    this.state.user_profile.name = trimmed;
+    if (studentClass && studentClass.trim()) {
+      this.state.user_profile.class = studentClass.trim();
+    }
+    this.state.user_profile.registered = true;
+    this.showNameModal = false;
+    this.persist();
+    this.showToast(`Selamat datang, ${trimmed}! Selamat belajar di FiberConnect.`, 'ok');
+    return true;
+  },
+
   updateProfile(name, studentClass) {
-    if (name) this.state.user_profile.name = name.trim();
+    if (name) {
+      this.state.user_profile.name = name.trim();
+      this.state.user_profile.registered = true;
+    }
     if (studentClass) this.state.user_profile.class = studentClass.trim();
     this.persist();
-    this.showToast('Data profil berhasil diperbarui');
+    this.showToast('Data profil berhasil diperbarui', 'ok');
   },
 
   updateK3Item(key, checked) {
@@ -199,16 +230,22 @@ window.FiberStore = {
 
   showToast(message, type = 'info') {
     const id = Date.now() + Math.random();
-    this.toasts.push({ id, message, type });
+    this.toasts.push({ id, message, type, exiting: false });
     setTimeout(() => {
       this.dismissToast(id);
     }, 3500);
   },
 
   dismissToast(id) {
-    const idx = this.toasts.findIndex(t => t.id === id);
-    if (idx !== -1) {
-      this.toasts.splice(idx, 1);
+    const toast = this.toasts.find(t => t.id === id);
+    if (toast && !toast.exiting) {
+      toast.exiting = true;
+      setTimeout(() => {
+        const idx = this.toasts.findIndex(t => t.id === id);
+        if (idx !== -1) {
+          this.toasts.splice(idx, 1);
+        }
+      }, 250);
     }
   }
 };

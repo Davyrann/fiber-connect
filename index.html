@@ -35,7 +35,7 @@
 
       <!-- User Chip -->
       <div class="chip chip-neutral" @click="navigate('profil')" style="cursor: pointer;" title="Buka Profil Siswa">
-        <span x-text="store.user_profile.name"></span>
+        <span x-text="store.user_profile.name || 'Siswa Praktikan'"></span>
       </div>
     </div>
   </header>
@@ -191,14 +191,14 @@
             </div>
 
             <!-- Layer Details Panel -->
-            <div style="background-color: var(--color-canvas); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="background-color: var(--color-canvas); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px;">
                 <h3 x-text="activeLayer.name"></h3>
-                <span class="chip chip-info" x-text="activeLayer.dim"></span>
+                <span class="chip chip-info chip-wrap" x-text="activeLayer.dim"></span>
               </div>
-              <p class="label" style="margin-bottom: 4px;">Material: <span style="color: var(--color-ink);" x-text="activeLayer.material"></span></p>
-              <p class="label" style="margin-bottom: 8px;">Indeks Bias: <span style="color: var(--color-ink);" x-text="activeLayer.index"></span></p>
-              <p class="caption" x-text="activeLayer.desc"></p>
+              <p class="label" style="margin-bottom: 6px;">Material: <span style="color: var(--color-ink);" x-text="activeLayer.material"></span></p>
+              <p class="label" style="margin-bottom: 10px;">Indeks Bias: <span style="color: var(--color-ink);" x-text="activeLayer.index"></span></p>
+              <p class="caption" style="line-height: 1.5;" x-text="activeLayer.desc"></p>
             </div>
           </div>
 
@@ -292,12 +292,12 @@
           </div>
 
           <div style="background-color: var(--color-canvas); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px;">
               <h3 x-text="activeConn.fullName"></h3>
-              <span class="chip chip-info" x-text="activeConn.locking"></span>
+              <span class="chip chip-info chip-wrap" x-text="activeConn.locking"></span>
             </div>
-            <p class="label" style="margin-bottom: 4px;">Bentuk Fisik & Ferrule: <span style="color: var(--color-ink);" x-text="activeConn.shape"></span></p>
-            <p class="label" style="margin-bottom: 8px;">Penggunaan Umum: <span style="color: var(--color-ink);" x-text="activeConn.typicalUse"></span></p>
+            <p class="label" style="margin-bottom: 6px;">Bentuk Fisik & Ferrule: <span style="color: var(--color-ink);" x-text="activeConn.shape"></span></p>
+            <p class="label" style="margin-bottom: 10px;">Penggunaan Umum: <span style="color: var(--color-ink);" x-text="activeConn.typicalUse"></span></p>
             <p class="caption" style="line-height: 1.5;" x-text="activeConn.advantages"></p>
           </div>
         </div>
@@ -307,7 +307,7 @@
           <h2 class="card-title" style="margin-bottom: 12px;">Tipe Pemolesan Ujung Ferrule: UPC (Biru) vs APC (Hijau)</h2>
           <div class="grid-2">
             <div style="border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 16px; background-color: var(--color-canvas);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px;">
                 <h3>UPC (Ultra Physical Contact)</h3>
                 <span class="chip" style="background-color: #DCEBEA; color: #0F3D5C; font-weight: 600;">Warna Bodi: Biru</span>
               </div>
@@ -317,7 +317,7 @@
             </div>
 
             <div style="border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 16px; background-color: var(--color-canvas);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px;">
                 <h3>APC (Angled Physical Contact)</h3>
                 <span class="chip" style="background-color: #E3EEDD; color: #1F4D2C; font-weight: 600;">Warna Bodi: Hijau</span>
               </div>
@@ -548,6 +548,7 @@
               </select>
             </div>
             <button type="button" class="btn btn-primary" :disabled="sim.isArcing" @click="submitStep6()">
+              <span x-show="sim.isArcing" class="spinner-sm" style="border-color: rgba(255,255,255,0.3); border-top-color: #fff; margin-right: 6px;"></span>
               <span x-text="sim.isArcing ? 'Pelepasan Busur Listrik Berlangsung...' : 'Tekan Tombol Set (Picu Arc Fusion)'"></span>
             </button>
           </div>
@@ -791,13 +792,69 @@
     </button>
   </nav>
 
+  <!-- Modal Dialog Input Nama Pemain Pertama Kali (Tanpa Login) -->
+  <div class="modal-backdrop" x-show="showNameModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-welcome-title">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header" style="margin-bottom: 12px;">
+        <div>
+          <span class="brand-badge" style="display: inline-block; margin-bottom: 6px;">FiberConnect</span>
+          <h2 id="modal-welcome-title" class="h3" style="margin: 0;">Selamat Datang!</h2>
+        </div>
+      </div>
+      <p class="caption" style="margin-bottom: 16px; line-height: 1.5;">
+        Silakan masukkan nama Anda untuk memulai media pembelajaran dan praktikum virtual menyambung kabel serat optik.
+      </p>
+
+      <form @submit.prevent="submitPlayerName()">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="label" for="player-name-input">Nama Lengkap Siswa / Praktikan <span style="color: var(--color-bad-solid);">*</span></label>
+          <input id="player-name-input" type="text" class="input" placeholder="Contoh: Budi Pratama" x-model="inputPlayerName" required autofocus style="width: 100%;">
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="label" for="player-class-input">Kelas / Rombel</label>
+          <input id="player-class-input" type="text" class="input" placeholder="XI TJKT 1" x-model="inputPlayerClass" style="width: 100%;">
+        </div>
+        <div class="modal-footer" style="margin-top: 0;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Mulai Belajar &amp; Praktikum &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container no-print" aria-live="polite">
     <template x-for="t in toasts" :key="t.id">
-      <div class="toast" :class="'toast-' + (t.type || 'info')" @click="dismissToast(t.id)" style="cursor: pointer;" title="Klik untuk menutup notifikasi">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-          <span x-text="t.message"></span>
-          <button type="button" class="btn-ghost btn-sm" style="height: 20px; width: 20px; padding: 0; min-width: 20px; border-radius: var(--radius-full); line-height: 1; font-size: 14px;" @click.stop="dismissToast(t.id)" aria-label="Tutup notifikasi">×</button>
+      <div class="toast" :class="['toast-' + (t.type || 'info'), t.exiting ? 'toast-exiting' : '']" @click="dismissToast(t.id)" style="cursor: pointer;" title="Klik untuk menutup notifikasi">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+            <!-- Icon status / loading -->
+            <template x-if="t.type === 'loading'">
+              <div class="spinner-sm" style="border-top-color: var(--color-accent);" aria-label="Memuat..."></div>
+            </template>
+            <template x-if="t.type === 'ok'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-ok-solid)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M20 6L9 17l-5-5"/></svg>
+            </template>
+            <template x-if="t.type === 'warn'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-warn-solid)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </template>
+            <template x-if="t.type === 'bad'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-bad-solid)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </template>
+            <template x-if="!t.type || t.type === 'info'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-info-solid)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </template>
+
+            <span style="line-height: 1.4; word-break: break-word;" x-text="t.message"></span>
+          </div>
+
+          <button type="button" class="toast-close" @click.stop="dismissToast(t.id)" aria-label="Tutup notifikasi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
       </div>
     </template>

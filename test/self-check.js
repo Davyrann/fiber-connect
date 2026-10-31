@@ -89,4 +89,52 @@ assert.strictEqual(typeof mockProgress.simulation, 'object', 'simulation should 
 assert.strictEqual(mockProgress.simulation.completed, true, 'simulation.completed should be true');
 console.log('[PASS] Progress schema preservation for both boolean and object states');
 
+// 7. Test Sidebar Sticky & Independent Scroll CSS Contract
+import fs from 'node:fs';
+const cssContent = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf-8');
+const sidebarBlockMatch = cssContent.match(/\.app-sidebar\s*\{([^}]+)\}/);
+assert(sidebarBlockMatch, '.app-sidebar CSS block must exist');
+const sidebarCss = sidebarBlockMatch[1];
+assert(sidebarCss.includes('position: sticky'), '.app-sidebar must have position: sticky');
+assert(sidebarCss.includes('top: 56px'), '.app-sidebar must stick below header (top: 56px)');
+assert(sidebarCss.includes('overflow-y: auto'), '.app-sidebar must have its own scroll container (overflow-y: auto)');
+assert(sidebarCss.includes('calc(100vh - 56px)'), '.app-sidebar height must match viewport minus header');
+console.log('[PASS] Sidebar sticky & independent scroll CSS contract verified');
+
+// 8. Test Chip Padding and Layout Elasticity
+const chipBlockMatch = cssContent.match(/(?:^|\n)\.chip\s*\{([^}]+)\}/);
+assert(chipBlockMatch, '.chip CSS block must exist');
+const chipCss = chipBlockMatch[1];
+assert(chipCss.includes('min-height:'), '.chip must use flexible min-height instead of fixed height');
+assert(chipCss.includes('padding: 4px 12px'), '.chip must provide comfortable internal padding (4px 12px)');
+assert(chipCss.includes('line-height: 1.4'), '.chip line-height must allow multi-line readability');
+assert(cssContent.includes('.nav-link .chip'), '.nav-link .chip must exist to protect navigation pills from wrapping');
+assert(cssContent.includes('white-space: nowrap'), 'nav pill must prevent text wrapping');
+console.log('[PASS] Chip padding and flexible layout verified');
+
+// 9. Test Toast In & Out Animation CSS Contract
+assert(cssContent.includes('@keyframes toast-in'), 'CSS must define @keyframes toast-in');
+assert(cssContent.includes('@keyframes toast-out'), 'CSS must define @keyframes toast-out');
+assert(cssContent.includes('.toast.toast-exiting'), 'CSS must define .toast.toast-exiting class');
+console.log('[PASS] Toast enter & exit animation contract verified');
+
+// 10. Test Player First-Time Registration Logic
+const storeContent = fs.readFileSync(new URL('../js/store.js', import.meta.url), 'utf-8');
+assert(storeContent.includes('registered: false'), 'DEFAULT_STATE must mark player as not registered by default');
+assert(storeContent.includes('setPlayerName'), 'FiberStore must provide setPlayerName method');
+assert(storeContent.includes('showNameModal'), 'FiberStore must support showNameModal flag');
+console.log('[PASS] Player first-time registration contract verified');
+
+// 11. Test Spinner Animation & Centered Toast Close Contract
+assert(cssContent.includes('@keyframes spin'), 'CSS must define @keyframes spin');
+assert(cssContent.includes('.spinner'), 'CSS must define .spinner class');
+assert(cssContent.includes('.toast-close'), 'CSS must define .toast-close class');
+const toastCloseMatch = cssContent.match(/\.toast-close\s*\{([^}]+)\}/);
+assert(toastCloseMatch, '.toast-close block must exist in CSS');
+const toastCloseCss = toastCloseMatch[1];
+assert(toastCloseCss.includes('display: inline-flex'), '.toast-close must use flexbox for centering');
+assert(toastCloseCss.includes('align-items: center'), '.toast-close must center align vertically');
+assert(toastCloseCss.includes('justify-content: center'), '.toast-close must center align horizontally');
+console.log('[PASS] Spinner animation and centered toast-close contract verified');
+
 console.log('ALL SELF-CHECK TESTS PASSED SUCCESSFULLY.');
